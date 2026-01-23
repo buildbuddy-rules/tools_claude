@@ -1,0 +1,16 @@
+"""Bazel toolchain for Claude Code - Anthropic's AI coding assistant CLI."""
+
+module(
+    name = "tools_claude",
+    version = "0.1.0",
+)
+
+bazel_dep(name = "platforms", version = "0.0.10")
+
+# Set up the Claude Code CLI binary (downloads latest by default)
+claude = use_extension("//claude:claude.bzl", "claude")
+claude.download()
+use_repo(claude, "claude_toolchains")
+
+# Register toolchains for all platforms
+register_toolchains("@claude_toolchains//:all")
