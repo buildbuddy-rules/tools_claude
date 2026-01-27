@@ -41,7 +41,8 @@ genrule(
     outs = ["output.md"],
     cmd = """
         export HOME=.home
-        $(CLAUDE_BINARY) --dangerously-skip-permissions -p 'Read $(location input.py) and write API documentation to $@'
+        $(CLAUDE_BINARY) --dangerously-skip-permissions -p \
+            'Read $(location input.py) and write API documentation to $@'
     """,
     toolchains = [CLAUDE_TOOLCHAIN_TYPE],
 )
