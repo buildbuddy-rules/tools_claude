@@ -9,12 +9,16 @@ ClaudeInfo = provider(
 
 def _claude_toolchain_impl(ctx):
     """Implementation of the Claude toolchain."""
+    default_info = DefaultInfo(files = depset([ctx.file.claude]))
     toolchain_info = platform_common.ToolchainInfo(
         claude_info = ClaudeInfo(
             binary = ctx.file.claude,
         ),
     )
-    return [toolchain_info]
+    template_variable_info = platform_common.TemplateVariableInfo({
+        "CLAUDE_BINARY": ctx.file.claude.path,
+    })
+    return [default_info, toolchain_info, template_variable_info]
 
 claude_toolchain = rule(
     implementation = _claude_toolchain_impl,
