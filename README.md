@@ -39,18 +39,52 @@ def _my_rule_impl(ctx):
     toolchain = ctx.toolchains[CLAUDE_TOOLCHAIN_TYPE]
     claude_binary = toolchain.claude_info.binary
 
-    # Use claude_binary in your actions
+    out = ctx.actions.declare_file(ctx.label.name + ".md")
     ctx.actions.run(
         executable = claude_binary,
-        arguments = ["--help"],
-        # ...
+        arguments = [
+            "--dangerously-skip-permissions",
+            "-p",
+            "Read {} and write API documentation to {}".format(ctx.file.src.path, out.path),
+        ],
+        inputs = [ctx.file.src],
+        outputs = [out],
+        env = {"HOME": ".home"},
+        use_default_shell_env = True,
     )
+    return [DefaultInfo(files = depset([out]))]
 
 my_rule = rule(
     implementation = _my_rule_impl,
+    attrs = {
+        "src": attr.label(allow_single_file = True, mandatory = True),
+    },
     toolchains = [CLAUDE_TOOLCHAIN_TYPE],
 )
 ```
+
+### In genrule
+
+Use the toolchain in a genrule via `toolchains` and make variable expansion:
+
+```starlark
+load("@tools_claude//claude:defs.bzl", "CLAUDE_TOOLCHAIN_TYPE")
+
+genrule(
+    name = "my_genrule",
+    srcs = ["input.py"],
+    outs = ["output.md"],
+    cmd = """
+        export HOME=.home
+        $(CLAUDE_BINARY) --dangerously-skip-permissions -p 'Read $(location input.py) and write API documentation to $@'
+    """,
+    toolchains = [CLAUDE_TOOLCHAIN_TYPE],
+)
+```
+
+The `$(CLAUDE_BINARY)` make variable expands to the path of the Claude Code binary.
+
+**Note:** The `export HOME=.home` line is required because Bazel runs genrules in a sandbox where the real home directory is not writable. Claude Code writes configuration and debug files to `$HOME`, so redirecting it to a writable location within the sandbox prevents permission errors. The `--dangerously-skip-permissions` flag allows Claude to read and write files without interactive approval.
 
 ### Public API
 
@@ -69,7 +103,39 @@ From `@tools_claude//claude:defs.bzl`:
 - `linux_arm64`
 - `linux_amd64`
 
+## Authentication
+
+Claude Code requires an `ANTHROPIC_API_KEY` to function. Since Bazel runs actions in a sandbox, you need to explicitly pass the API key through using `--action_env`.
+
+### Option 1: Pass from environment
+
+To pass the API key from your shell environment, add to your `.bazelrc`:
+
+```
+common --action_env=ANTHROPIC_API_KEY
+```
+
+Then ensure `ANTHROPIC_API_KEY` is set in your shell before running Bazel.
+
+### Option 2: Hardcode in user.bazelrc
+
+For convenience, you can hardcode the API key in a `user.bazelrc` file that is gitignored:
+
+1. Add `user.bazelrc` to your `.gitignore`:
+   ```
+   echo "user.bazelrc" >> .gitignore
+   ```
+
+2. Create a `.bazelrc` that imports `user.bazelrc`:
+   ```
+   echo "try-import %workspace%/user.bazelrc" >> .bazelrc
+   ```
+
+3. Create `user.bazelrc` with your API key:
+   ```
+   common --action_env=ANTHROPIC_API_KEY=sk-ant-...
+   ```
+
 ## Requirements
 
 - Bazel 7.0+ with bzlmod enabled
-- `ANTHROPIC_API_KEY` environment variable for Claude Code to function
