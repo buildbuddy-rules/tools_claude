@@ -28,6 +28,29 @@ claude.download(version = "1.0.30")
 
 ## Usage
 
+### In genrule
+
+Use the toolchain in a genrule via `toolchains` and make variable expansion:
+
+```starlark
+load("@tools_claude//claude:defs.bzl", "CLAUDE_TOOLCHAIN_TYPE")
+
+genrule(
+    name = "my_genrule",
+    srcs = ["input.py"],
+    outs = ["output.md"],
+    cmd = """
+        export HOME=.home
+        $(CLAUDE_BINARY) --dangerously-skip-permissions -p 'Read $(location input.py) and write API documentation to $@'
+    """,
+    toolchains = [CLAUDE_TOOLCHAIN_TYPE],
+)
+```
+
+The `$(CLAUDE_BINARY)` make variable expands to the path of the Claude Code binary.
+
+**Note:** The `export HOME=.home` line is required because Bazel runs genrules in a sandbox where the real home directory is not writable. Claude Code writes configuration and debug files to `$HOME`, so redirecting it to a writable location within the sandbox prevents permission errors. The `--dangerously-skip-permissions` flag allows Claude to read and write files without interactive approval.
+
 ### In custom rules
 
 Use the toolchain in your rule implementation:
@@ -62,29 +85,6 @@ my_rule = rule(
     toolchains = [CLAUDE_TOOLCHAIN_TYPE],
 )
 ```
-
-### In genrule
-
-Use the toolchain in a genrule via `toolchains` and make variable expansion:
-
-```starlark
-load("@tools_claude//claude:defs.bzl", "CLAUDE_TOOLCHAIN_TYPE")
-
-genrule(
-    name = "my_genrule",
-    srcs = ["input.py"],
-    outs = ["output.md"],
-    cmd = """
-        export HOME=.home
-        $(CLAUDE_BINARY) --dangerously-skip-permissions -p 'Read $(location input.py) and write API documentation to $@'
-    """,
-    toolchains = [CLAUDE_TOOLCHAIN_TYPE],
-)
-```
-
-The `$(CLAUDE_BINARY)` make variable expands to the path of the Claude Code binary.
-
-**Note:** The `export HOME=.home` line is required because Bazel runs genrules in a sandbox where the real home directory is not writable. Claude Code writes configuration and debug files to `$HOME`, so redirecting it to a writable location within the sandbox prevents permission errors. The `--dangerously-skip-permissions` flag allows Claude to read and write files without interactive approval.
 
 ### Public API
 
