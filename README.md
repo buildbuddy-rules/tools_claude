@@ -11,7 +11,7 @@ bazel_dep(name = "tools_claude", version = "0.1.0")
 git_override(
     module_name = "tools_claude",
     remote = "https://github.com/buildbuddy-rules/tools_claude.git",
-    commit = "954aed3c075f0776331d0790d5aa20c32729819d",
+    commit = "76ca74b728a47baae1a4d5b3f3a828400d0d4f87",
 )
 ```
 
