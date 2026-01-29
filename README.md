@@ -15,7 +15,7 @@ git_override(
 )
 ```
 
-The toolchain is automatically registered and downloads the latest Claude Code binary.
+The toolchain is automatically registered. By default, it downloads version `2.1.25` with SHA256 verification for reproducible builds.
 
 ### Pinning a Claude Code version
 
@@ -23,7 +23,16 @@ To pin a specific Claude Code CLI version:
 
 ```starlark
 claude = use_extension("@tools_claude//claude:claude.bzl", "claude")
-claude.download(version = "1.0.30")
+claude.download(version = "2.0.0")
+```
+
+### Using the latest version
+
+To always fetch the latest version:
+
+```starlark
+claude = use_extension("@tools_claude//claude:claude.bzl", "claude")
+claude.download(use_latest = True)
 ```
 
 ## Usage
