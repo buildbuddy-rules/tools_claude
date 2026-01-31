@@ -2,6 +2,8 @@
 
 Bazel toolchain for [Claude Code](https://github.com/anthropics/claude-code) - Anthropic's AI coding assistant CLI.
 
+If you want a Bazel ruleset that uses this toolchain, see [rules_claude](https://github.com/buildbuddy-rules/rules_claude).
+
 ## Setup
 
 Add the dependency to your `MODULE.bazel` using `git_override`:
