@@ -32,9 +32,6 @@ toolchain(
     exec_compatible_with = [
         {exec_constraints},
     ],
-    target_compatible_with = [
-        {exec_constraints},
-    ],
     toolchain = ":{platform}_impl",
     toolchain_type = "@tools_claude//claude:toolchain_type",
 )
