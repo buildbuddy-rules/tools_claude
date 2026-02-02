@@ -1,0 +1,3 @@
+load(":claude_version_test.bzl", "claude_version_test")
+
+claude_version_test(name = "claude_version_test")

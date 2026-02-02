@@ -98,13 +98,54 @@ my_rule = rule(
 )
 ```
 
+### In tests
+
+For tests that need to run the Claude binary at runtime, use the runtime toolchain type. This ensures the binary matches the target platform where the test executes:
+
+```starlark
+load("@tools_claude//claude:defs.bzl", "CLAUDE_RUNTIME_TOOLCHAIN_TYPE")
+
+def _claude_test_impl(ctx):
+    toolchain = ctx.toolchains[CLAUDE_RUNTIME_TOOLCHAIN_TYPE]
+    claude_binary = toolchain.claude_info.binary
+
+    test_script = ctx.actions.declare_file(ctx.label.name + ".sh")
+    ctx.actions.write(
+        output = test_script,
+        content = """#!/bin/bash
+export HOME="$TEST_TMPDIR"
+{claude} --version
+""".format(claude = claude_binary.short_path),
+        is_executable = True,
+    )
+    return [DefaultInfo(
+        executable = test_script,
+        runfiles = ctx.runfiles(files = [claude_binary]),
+    )]
+
+claude_test = rule(
+    implementation = _claude_test_impl,
+    test = True,
+    toolchains = [CLAUDE_RUNTIME_TOOLCHAIN_TYPE],
+)
+```
+
+### Toolchain types
+
+There are two toolchain types depending on your use case:
+
+- **`CLAUDE_TOOLCHAIN_TYPE`** - Use for build-time actions (genrules, custom rules). Selected based on the execution platform. Use this when Claude's output isn't platform-specific.
+
+- **`CLAUDE_RUNTIME_TOOLCHAIN_TYPE`** - Use for tests or run targets where the Claude binary executes on the target platform.
+
 ### Public API
 
 From `@tools_claude//claude:defs.bzl`:
 
 | Symbol | Description |
 |--------|-------------|
-| `CLAUDE_TOOLCHAIN_TYPE` | Toolchain type string for use in `toolchains` attribute |
+| `CLAUDE_TOOLCHAIN_TYPE` | Toolchain type for build actions (exec platform only) |
+| `CLAUDE_RUNTIME_TOOLCHAIN_TYPE` | Toolchain type for test/run (target platform) |
 | `ClaudeInfo` | Provider with `binary` field containing the Claude Code executable |
 | `claude_toolchain` | Rule for defining custom toolchain implementations |
 

@@ -35,6 +35,15 @@ toolchain(
     toolchain = ":{platform}_impl",
     toolchain_type = "@tools_claude//claude:toolchain_type",
 )
+
+toolchain(
+    name = "{platform}_runtime",
+    target_compatible_with = [
+        {exec_constraints},
+    ],
+    toolchain = ":{platform}_impl",
+    toolchain_type = "@tools_claude//claude:runtime_toolchain_type",
+)
 """
 
 def _claude_toolchains_repo_impl(repository_ctx):

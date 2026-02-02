@@ -33,3 +33,4 @@ claude_toolchain = rule(
 )
 
 CLAUDE_TOOLCHAIN_TYPE = "@tools_claude//claude:toolchain_type"
+CLAUDE_RUNTIME_TOOLCHAIN_TYPE = "@tools_claude//claude:runtime_toolchain_type"
