@@ -1,3 +1,5 @@
+![tools_claude](tools_claude.png)
+
 # tools_claude
 
 Hermetic, cross-platform Bazel toolchain for [Claude Code](https://github.com/anthropics/claude-code) - Anthropic's AI coding assistant CLI. If you want a Bazel ruleset that uses this toolchain, see [rules_claude](https://github.com/buildbuddy-rules/rules_claude).
@@ -149,3 +151,7 @@ For convenience, you can hardcode the API key in a `user.bazelrc` file that is g
 ## Requirements
 
 - Bazel 7.0+ with bzlmod enabled
+
+## Acknowledgements
+
+Claude and Claude Code are trademarks of Anthropic, PBC.
