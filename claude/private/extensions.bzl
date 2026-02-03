@@ -69,23 +69,32 @@ _claude_toolchains_repo = repository_rule(
     implementation = _claude_toolchains_repo_impl,
 )
 
+def _find_modules(module_ctx):
+    """Find the root module and tools_claude module.
+
+    Toolchain configuration is only allowed in the root module, or in
+    tools_claude.
+    See https://github.com/bazelbuild/bazel/discussions/22024 for discussion.
+    """
+    root = None
+    tools_claude = None
+    for mod in module_ctx.modules:
+        if mod.is_root:
+            root = mod
+        if mod.name == "tools_claude":
+            tools_claude = mod
+    if root == None:
+        root = tools_claude
+    if tools_claude == None:
+        fail("Unable to find tools_claude module")
+    return root, tools_claude
+
 def _claude_impl(module_ctx):
     """Implementation of the claude module extension."""
+    root, tools_claude = _find_modules(module_ctx)
 
-    # Check for mismatched versions
-    root_download = None
-    versions = {}  # version -> download tag
-    for mod in module_ctx.modules:
-        for download in mod.tags.download:
-            if mod.is_root and not root_download:
-                root_download = download
-            if download.version and download.version not in versions:
-                versions[download.version] = download
-    if len(versions) > 1:
-        fail("Conflicting Claude CLI versions requested: {}".format(", ".join(versions.keys())))
-
-    # Use specified version if any, otherwise use root module settings
-    download = versions.values()[0] if versions else root_download
+    downloads = root.tags.download or tools_claude.tags.download
+    download = downloads[0] if downloads else None
     version = download.version if download else ""
     sha256 = download.sha256 if download else {}
     use_latest = download.use_latest if download else False
